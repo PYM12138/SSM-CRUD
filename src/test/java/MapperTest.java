@@ -49,7 +49,7 @@ public class MapperTest {
         System.out.println();
         System.out.println("master1");
         System.out.println("deve");
-        System.out.println("master");
+
 
 
 
