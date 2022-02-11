@@ -43,18 +43,7 @@ public class MapperTest {
         List<Employee> employees = mapper.selectByExample(null);
         System.out.println(employees);
         System.out.println("批量完成");
-        System.out.println();
-        System.out.println();
-        System.out.println("master");
-        System.out.println();
-        System.out.println("master1");
-        System.out.println("deve");
-        System.out.println("deve");
-        System.out.println("deve");
-        System.out.println("deve");
-        System.out.println("master");
-        System.out.println("deve1");
-        System.out.println("deve2");
+
 
 
 
