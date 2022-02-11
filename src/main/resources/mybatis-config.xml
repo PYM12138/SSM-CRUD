@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<!--注意：标签之间都是有先后顺序的-->
+<configuration>
+	<!--resource 引入类路径下的文件，url 引入外部文件或网络地址-->
+<!--	<properties resource="jdbc.properties"/>-->
+	<settings>
+		<!--开启驼峰命名规则，数据库的A_Column对应javaBean的aColumn-->
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<!--懒加载设置，当你调用对应的属性或对象时，对应sql语句才会被执行，否则你用什么就执行什么-->
+		<setting name="lazyLoadingEnabled" value="true"/>
+		<setting name="aggressiveLazyLoading" value="false"/>
+		<!--开启二级缓存/全局缓存-->
+		<setting name="cacheEnabled" value="true"/>
+	</settings>
+<!--	<typeAliases>-->
+<!--		&lt;!&ndash;-->
+<!--		1.单独为一个类起别名 -->
+<!--		2.指定一个包起别名，一般都是直接默认名就行。默认名=类名-->
+<!--		3.用注释的方式单独一个类起别名 @Alias-->
+<!--		4.别名不区分大小写-->
+<!--		&ndash;&gt;-->
+<!--		<package name="com.atguigu.bean"/>-->
+<!--		<typeAlias type="com.atguigu.bean.User" alias="user"/>-->
+<!--		-->
+<!--	</typeAliases>-->
+<!--	<environments default="development">
+		&lt;!&ndash;environment\transactionManager\dataSource 是一起的。
+			transactionManager：事务管理器类型
+			dataSource：数据源类型
+			mybatis支持多厂商 搭配environment和databaseIdProvider使用
+
+		&ndash;&gt;
+
+		<environment id="development">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="${jdbc.driver}" />
+				<property name="url" value="${jdbc.url}" />
+				<property name="username" value="${jdbc.username}" />
+				<property name="password" value="${jdbc.password}" />
+			</dataSource>
+		</environment>
+	</environments>-->
+	<!--<databaseIdProvider type="DB_VENDOR">
+		为数据库厂商起别名
+		<property name="MySQL" value="mysql"/>
+		<property name="Oracle" value="oracle"/>
+	</databaseIdProvider>-->
+
+	<!-- 将我们写好的sql映射文件（UserMapper.xml）一定要注册到全局配置文件（mybatis-config.xml）中
+		这个文件又称为小配置
+	-->
+<!--	<mappers>
+		<mapper resource="UserMapper.xml"/>
+		&lt;!&ndash;注解版本，只要在接口上面用注解写好对应的sql语句，在这里把对应的接口路径注册，就可以直接使用了，不需要sql.xml文件
+		<mapper class=""/>
+		批量注册:
+		<package name=""/> 把接口和sql.xml放在同一包下，或是注解版本的接口，都会自动注册。name写包路径
+		&ndash;&gt;
+
+	</mappers>-->
+</configuration>
