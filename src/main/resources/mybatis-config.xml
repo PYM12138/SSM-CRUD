@@ -16,6 +16,9 @@
 		<!--开启二级缓存/全局缓存-->
 		<setting name="cacheEnabled" value="true"/>
 	</settings>
+	<plugins>
+		<plugin interceptor="com.github.pagehelper.PageInterceptor"></plugin>
+	</plugins>
 <!--	<typeAliases>-->
 <!--		&lt;!&ndash;-->
 <!--		1.单独为一个类起别名 -->
