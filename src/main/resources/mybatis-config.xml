@@ -17,7 +17,10 @@
 		<setting name="cacheEnabled" value="true"/>
 	</settings>
 	<plugins>
-		<plugin interceptor="com.github.pagehelper.PageInterceptor"></plugin>
+		<plugin interceptor="com.github.pagehelper.PageInterceptor">
+			<!--翻页参数合理化，如果当前的pageNum<=0,则会默认恢复为第一页-->
+			<property name="reasonable" value="true"/>
+		</plugin>
 	</plugins>
 <!--	<typeAliases>-->
 <!--		&lt;!&ndash;-->
