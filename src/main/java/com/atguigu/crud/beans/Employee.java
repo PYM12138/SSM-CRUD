@@ -1,12 +1,16 @@
 package com.atguigu.crud.beans;
 
+import org.hibernate.validator.constraints.Email;
+
+import javax.validation.constraints.Pattern;
+
 public class Employee {
     private Integer empId;
-
+    @Pattern(regexp = "(^[a-zA-Z0-9_-]{3,16}$)|(^[\\u2E80-\\u9FFF]{2,5})",message = "必须是英文和数字3-16位或中文2-5位")
     private String empName;
 
     private String gender;
-
+    @Pattern(regexp = "^([a-zA-Z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$",message = "邮箱格式不正确!")
     private String email;
 
     private Integer dId;

@@ -45,16 +45,18 @@
                 <form class="form-horizontal" id="modal_form">
                     <div class="form-group">
                         <label for="input_EmpName" class="col-sm-2 control-label">empName</label>
-                        <div class="col-sm-10">
+                        <div class="col-sm-10" id="input_empName_div">
                             <input type="text" class="form-control" name="empName" id="input_EmpName"
                                    placeholder="empName">
+                            <span class="help-block"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="input_email" class="col-sm-2 control-label">Email</label>
-                        <div class="col-sm-10">
+                        <div class="col-sm-10" id="input_email_div">
                             <input type="text" class="form-control" name="email" id="input_email"
                                    placeholder="xx@atguigu.com">
+                            <span class="help-block"></span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -133,7 +135,7 @@
     </div>
     <%--分页数据--%>
     <div class="row">
-        <%--分页数据--%>
+        <%--分页具体数据--%>
         <div class="col-md-6" id="page_info">
         </div>
         <%--分页条--%>
@@ -145,6 +147,7 @@
 
 
 <script type="text/javascript">
+    //最大页码标记
     var pageRecord;
 
     //1.在页面加载完成之后，发送ajax请求，拿到分页数据（这样就不需要通过转发的形式拿数据了）
@@ -283,8 +286,23 @@
     }
 
 
+    //表单重置完全版
+    function reset_form(ele) {
+        $(ele)[0].reset();
+        $(ele).find("*").removeClass("has-success has-error")
+        $(ele).find(".help-block").text("")
+    }
+
     //点击触发模态框(通过JS的方式叫手动)
     $("#btn_add").click(function () {
+        /*//模态框弹出之前先进行表单重置
+        $("#modal_form")[0].reset();
+        //上次提交的绿边框会遗留下来，干脆在重置表单的时候一起移除了
+        $("#input_email_div").removeClass("has-success has-error")
+        $("#input_empName_div").removeClass("has-success has-error")*/
+
+        reset_form("#modal_form");
+
         //打开模态框之前先查询部门数据
         departments();
 
@@ -296,6 +314,7 @@
         $("#modal_add_select").empty();
     })
 
+    //获取部门信息然后填充到select标签中
     function departments() {
         $.ajax({
             url: "${APP_PATH}/depts",
@@ -310,27 +329,139 @@
         });
 
     }
+    //模态框保存按钮
     $("#modal_save_btn").click(function (){
+        //数据校验（这一步防止直接提交空表单）
+        if (!validate_data_add_form()){//校验用户名
+            validate_data_add_form1()
+            return false;
+        }
+
+        if (!validate_data_add_form1()){//校验邮箱
+            validate_data_add_form()
+            return false;
+        }
+        //检查用户名是否重复，通过自定义属性的方式（根据用户名是否重复再次判断能否提交数据）
+        if($(this).attr("ajax-va")==="error"){
+            //给用户一个友好提示
+            //validate_info_warn("#input_EmpName","error","用户名不可用")
+            return false;
+        }
+
         //保存数据
         $.ajax({
             url:"${APP_PATH}/emp",
             type:"POST",
             data: $("#modal_form").serialize(),
             success:function (result) {
-                //关闭模态框
-                $("#emp_add_modal").modal('hide')
-                //跳转到最后一页(如果你的页面最大超过了当前的总页码(pages)，则默认最后一页，由分页插件提供的)
-                to_page(pageRecord)
+                if (result.code===100){
+                    //关闭模态框
+                    $("#emp_add_modal").modal('hide')
+                    //跳转到最后一页(如果你的页面最大超过了当前的总页码(pages)，则默认最后一页，由分页插件提供的)
+                    to_page(pageRecord)
+                    //提示信息
+                    alert(result.msg)
+                }else{
+                    //有哪个字段有错误就显示哪个
+                    if (result.extend.errorField.email!==undefined){
+                        validate_info_warn("#input_email","error",result.extend.errorField.email);
+                    }
+                    if (result.extend.errorField.empName!==undefined){
+                        validate_info_warn("#input_EmpName","error",result.extend.errorField.empName)
+                    }
 
-                //提示信息
-                alert(result.msg)
+                }
+
             }
 
         })
+    })
+
+    //数据校验用户名
+    function validate_data_add_form() {
+       var empName =$("#input_EmpName").val();
+       //允许英文(大小写)和数字3-16位，允许中文2-5位
+       var regxEmpName=/(^[a-zA-Z0-9_-]{3,16}$)|(^[\u2E80-\u9FFF]{2,5})/;
+
+       if (!regxEmpName.test(empName)){
+           //校验失败直接返回一个false就会终止这个方法了
+          // alert("英文和数字3-16位或中文2-5位")
+           validate_info_warn("#input_EmpName","error","必须是英文和数字3-16位或中文2-5位");
+            return false;
+       }else{
+           validate_info_warn("#input_EmpName","success","");
+       }
 
 
+       return true;
+    }
+    //数据校验邮箱
+    function validate_data_add_form1() {
+        var email=$("#input_email").val();
+        var regxEmail=/^([a-zA-Z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/
+        if (!regxEmail.test(email)){
+            // alert("邮箱格式不正确！")
+            validate_info_warn("#input_email","error","邮箱格式不正确!");
+            return false;
+        }else{
+            validate_info_warn("#input_email","success","邮箱格式正确");
+        }
+
+        return true;
+    }
+    //检查用户名是否重复（两次判断）
+    $("#input_EmpName").change(function () {//当文本内容更改就开始检查
+        var empName=$(this).val();
+
+        if (!validate_data_add_form()){//首先判断用户名是否合理，合理才能下一步
+            return false;
+        }
+
+        //1.发送ajax请求
+        $.ajax({
+            url:"${APP_PATH}/checkEmpName",
+            data:"empName="+empName,
+            type:"POST",
+            success:function (result) {//通过自定义的状态码来显示对应的信息
+                if (result.code===100){
+                    validate_info_warn("#input_EmpName","success","用户名可用")
+                    //给保存按钮加自定义的属性，用于判断是否保存
+                    $("#modal_save_btn").attr("ajax-va","success")
+                }else{
+                    validate_info_warn("#input_EmpName","error","用户名不可用")
+                    $("#modal_save_btn").attr("ajax-va","error")
+                }
+
+            }
+        })
 
     })
+
+    //当邮箱填入之后就进行一个校验是否正确（没有这一步，邮箱校验只能在提交的时候才能知道是否合理）
+    $("#input_email").change(function () {
+        validate_data_add_form1();
+    })
+    //数据校验信息提取
+    function validate_info_warn(ele,status,msg) {
+        //数据校验前先清空class，防止样式堆叠
+        $(ele).parent().removeClass("has-success has-error")
+        $(ele).next("span").text("");
+
+        if ("success"===status){
+            $(ele).parent().addClass("has-success")
+            $(ele).next("span").text(msg)
+
+        }else if ("error"===status){
+            $(ele).parent().addClass("has-error")
+            $(ele).next("span").text(msg)
+        }
+
+    }
+
+
+
+    
+    
 
 </script>
 
