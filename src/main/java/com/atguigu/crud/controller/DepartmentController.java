@@ -1,0 +1,29 @@
+package com.atguigu.crud.controller;
+
+import com.atguigu.crud.beans.Department;
+import com.atguigu.crud.beans.Msg;
+import com.atguigu.crud.service.DepartmentService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+@Controller
+public class DepartmentController {
+    @Autowired
+    private DepartmentService departmentService;
+
+
+    @RequestMapping("/depts")
+    @ResponseBody
+    public Msg depts(){//查询所有的部门信息
+        List<Department> departments = departmentService.deptAll();
+        return Msg.success().add("depts", departments);
+    }
+
+
+
+
+}

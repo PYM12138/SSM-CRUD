@@ -32,6 +32,60 @@
 </head>
 
 <body>
+<!-- 员工增加模态框 -->
+<div class="modal fade" id="emp_add_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">添加员工</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" id="modal_form">
+                    <div class="form-group">
+                        <label for="input_EmpName" class="col-sm-2 control-label">empName</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="empName" id="input_EmpName"
+                                   placeholder="empName">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input_email" class="col-sm-2 control-label">Email</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="email" id="input_email"
+                                   placeholder="xx@atguigu.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">gender</label>
+                        <div class="col-sm-10">
+                            <div class="checkbox">
+                                <label class="radio-inline">
+                                    <input type="radio" name="gender" id="input_add_btn1" value="M" checked="checked"> 男
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="gender" id="input_add_btn2" value="F"> 女
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_add_select" class="col-sm-2 control-label">deptName</label>
+                        <div class="col-sm-4">
+                            <select class="form-control" name="dId" id="modal_add_select">
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="modal_save_btn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="container ">
     <%--标题行--%>
@@ -44,7 +98,7 @@
     <%--操作行--%>
     <div class="row">
         <div class="col-md-4 col-md-offset-8">
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" id="btn_add">
                 <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                 新增
             </button>
@@ -73,7 +127,6 @@
                 </tbody>
 
 
-
             </table>
         </div>
 
@@ -92,24 +145,25 @@
 
 
 <script type="text/javascript">
+    var pageRecord;
+
     //1.在页面加载完成之后，发送ajax请求，拿到分页数据（这样就不需要通过转发的形式拿数据了）
     $(function () {
         to_page(1);
     });
+
     function to_page(pn) {
         $.ajax({
-            url:"${APP_PATH}/emps",
-            data:"pn="+pn,
-            type:"GET",
-            success:function (result) {
+            url: "${APP_PATH}/emps",
+            data: "pn=" + pn,
+            type: "GET",
+            success: function (result) {
                 //1.解析并显示员工数据
                 build_emps_table(result)
                 //2.解析并显示分页信息
                 build_page_info(result)
                 //3.解析并显示分页条
                 build_page_nav(result)
-
-
             }
         });
     }
@@ -117,20 +171,20 @@
     function build_emps_table(result) {
         //每次执行查询都必须先清空数据，防止数据在页面上堆叠
         $("#emps_table tbody").empty();
-        var emps=result.extend.pageInfo.list;
-        $.each(emps,function (index, item) {
-            var empIdTd=$("<td></td>").append(item.empId);
-            var empNameTd=$("<td></td>").append(item.empName);
-            var genderTd=$("<td></td>").append(item.gender==="M"?"男":"女");
-            var emailTd=$("<td></td>").append(item.email);
-            var deptNameTd=$("<td></td>").append(item.dept.deptName);
-            var editBtn=$("<button></button>").addClass("btn btn-info btn-sm")
-                            .append($("<span></span>").addClass("glyphicon glyphicon-pencil"))
-                            .append("编辑");
-            var delBtn=$("<button></button>").addClass("btn btn-danger btn-sm")
+        var emps = result.extend.pageInfo.list;
+        $.each(emps, function (index, item) {
+            var empIdTd = $("<td></td>").append(item.empId);
+            var empNameTd = $("<td></td>").append(item.empName);
+            var genderTd = $("<td></td>").append(item.gender === "M" ? "男" : "女");
+            var emailTd = $("<td></td>").append(item.email);
+            var deptNameTd = $("<td></td>").append(item.dept.deptName);
+            var editBtn = $("<button></button>").addClass("btn btn-info btn-sm")
+                .append($("<span></span>").addClass("glyphicon glyphicon-pencil"))
+                .append("编辑");
+            var delBtn = $("<button></button>").addClass("btn btn-danger btn-sm")
                 .append($("<span></span>").addClass("glyphicon glyphicon-trash"))
                 .append("删除");
-            var btnId=$("<td></td>").append(editBtn).append(" ").append(delBtn);
+            var btnId = $("<td></td>").append(editBtn).append(" ").append(delBtn);
 
             //每次append都会返回一个原对象所以可以一直append
             $("<tr></tr>").append(empIdTd)
@@ -146,51 +200,52 @@
 
     function build_page_info(result) {
         //每次执行查询都必须先清空数据，防止数据在页面上堆叠
-        var page_info= $("#page_info");
+        var page_info = $("#page_info");
         page_info.empty();
 
-        var page=result.extend.pageInfo;
+        var page = result.extend.pageInfo;
         page_info.append($("<h4></h4>")
-            .append("当前第"+page.pageNum+"页,总页数"+page.pages+"页,总记录"+page.total+"条"))
+            .append("当前第" + page.pageNum + "页,总页数" + page.pages + "页,总记录" + page.total + "条"))
+        pageRecord=page.total;
     }
 
-    
+
     function build_page_nav(result) {
         //每次执行查询都必须先清空数据，防止数据在页面上堆叠
         $("#page_nav").empty();
 
-        var ul=$("<ul></ul>").addClass("pagination");
+        var ul = $("<ul></ul>").addClass("pagination");
 
 
         //首页和上一页
-        var firstPage=$("<li></li>").append( $("<a></a>")
-                        .attr("href","#").append("首页")  )
-        var previousPage=$("<li></li>").append($("<a></a>").attr("href","#")
-                        .append($("<span></span>").append("&laquo;")))
+        var firstPage = $("<li></li>").append($("<a></a>")
+            .attr("href", "#").append("首页"))
+        var previousPage = $("<li></li>").append($("<a></a>").attr("href", "#")
+            .append($("<span></span>").append("&laquo;")))
 
 
         ul.append(firstPage).append(previousPage);
 
         //设置点击跳转和在满足条件的时候禁用按钮
-        if (result.extend.pageInfo.hasPreviousPage===false){
+        if (result.extend.pageInfo.hasPreviousPage === false) {
             //禁用button按钮
             firstPage.addClass("disabled")
             previousPage.addClass("disabled")
-        }else {
-            firstPage.click(function (){
+        } else {
+            firstPage.click(function () {
                 to_page(1);
             });
             previousPage.click(function () {
-                to_page(result.extend.pageInfo.pageNum-1);
+                to_page(result.extend.pageInfo.pageNum - 1);
             })
         }
 
 
         //中间填充
-        $.each(result.extend.pageInfo.navigatepageNums,function (index,item) {
-            var numLi=$("<li></li>").append($("<a></a>").append(item))
+        $.each(result.extend.pageInfo.navigatepageNums, function (index, item) {
+            var numLi = $("<li></li>").append($("<a></a>").append(item))
             //高亮显示当前的页码数
-            if (result.extend.pageInfo.pageNum===item){
+            if (result.extend.pageInfo.pageNum === item) {
                 numLi.addClass("active")
             }
             //设置点击跳转
@@ -201,31 +256,82 @@
             ul.append(numLi);
         })
         //尾页和下一页
-        var lastPage=$("<li></li>").append($("<a></a>").attr("href","#")
+        var lastPage = $("<li></li>").append($("<a></a>").attr("href", "#")
             .append("未页"))
-        var nextPage=$("<li></li>").append($("<a></a>").attr("href","#")
+        var nextPage = $("<li></li>").append($("<a></a>").attr("href", "#")
             .append($("<span></span>").append("&raquo;")))
 
 
         //设置点击跳转和在满足条件的时候禁用按钮
-        if (result.extend.pageInfo.hasNextPage===false){
+        if (result.extend.pageInfo.hasNextPage === false) {
             //禁用button按钮
             lastPage.addClass("disabled")
             nextPage.addClass("disabled")
-        }else {
-            lastPage.click(function (){
+        } else {
+            lastPage.click(function () {
                 to_page(result.extend.pageInfo.pages);
             });
             nextPage.click(function () {
-                to_page(result.extend.pageInfo.pageNum+1);
+                to_page(result.extend.pageInfo.pageNum + 1);
             })
         }
         //<ul>标签
         ul.append(nextPage).append(lastPage)
         //<nav>标签
-        var nav=$("<nav></nav>").append(ul)
+        var nav = $("<nav></nav>").append(ul)
         nav.appendTo("#page_nav");
     }
+
+
+    //点击触发模态框(通过JS的方式叫手动)
+    $("#btn_add").click(function () {
+        //打开模态框之前先查询部门数据
+        departments();
+
+        //打开模态框
+        $("#emp_add_modal").modal({
+            backdrop: "static"
+        });
+        //发现每次点击下拉菜单都是会叠加，所以得让它每次重新打开都要先清空之前的数据
+        $("#modal_add_select").empty();
+    })
+
+    function departments() {
+        $.ajax({
+            url: "${APP_PATH}/depts",
+            type: "GET",
+            success:function (result) {
+                //{"code":100,"msg":"操作成功","extend":{"depts":[{"deptId":1,"deptName":"开发部"},{"deptId":2,"deptName":"测试部"}]}}
+                $.each(result.extend.depts,function (index, item) {
+                    var option=$("<option></option>").append(item.deptName).attr("value",item.deptId);
+                    option.appendTo("#modal_add_select");
+                });
+            }
+        });
+
+    }
+    $("#modal_save_btn").click(function (){
+        //保存数据
+        $.ajax({
+            url:"${APP_PATH}/emp",
+            type:"POST",
+            data: $("#modal_form").serialize(),
+            success:function (result) {
+                //关闭模态框
+                $("#emp_add_modal").modal('hide')
+                //跳转到最后一页(如果你的页面最大超过了当前的总页码(pages)，则默认最后一页，由分页插件提供的)
+                to_page(pageRecord)
+
+                //提示信息
+                alert(result.msg)
+            }
+
+        })
+
+
+
+    })
+
 </script>
 
 

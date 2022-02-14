@@ -9,7 +9,7 @@ import java.util.List;
 @Service
 public class EmployeeService {
     @Autowired
-    EmployeeMapper employeeMapper;
+    private EmployeeMapper employeeMapper;
 
     public List<Employee> getEmpAll(){
         List<Employee> employees = employeeMapper.selectByExampleWithDept(null);
@@ -17,4 +17,7 @@ public class EmployeeService {
     }
 
 
+    public void saveEmp(Employee employee) {
+        employeeMapper.insertSelective(employee);
+    }
 }
