@@ -13,7 +13,9 @@ public class EmployeeService {
     private EmployeeMapper employeeMapper;
 
     public List<Employee> getEmpAll(){
-        List<Employee> employees = employeeMapper.selectByExampleWithDept(null);
+        EmployeeExample employeeExample=new EmployeeExample();
+        employeeExample.setOrderByClause("emp_id");
+        List<Employee> employees = employeeMapper.selectByExampleWithDept(employeeExample);
         return employees;
     }
 
@@ -32,5 +34,16 @@ public class EmployeeService {
         criteria.andEmpNameEqualTo(empName);
         long l = employeeMapper.countByExample(employeeExample);
         return l==0;
+    }
+
+    public Employee getEmpSingle(Integer id) {
+        Employee employee = employeeMapper.selectByPrimaryKey(id);
+        return employee;
+
+    }
+
+    public Integer updateEmp(Employee employee) {
+        int i = employeeMapper.updateByPrimaryKeySelective(employee);
+        return i;
     }
 }

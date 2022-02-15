@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,9 +34,36 @@ public class EmployeeController {
     //防止恶意禁用JS，默认为false,只要没有用checkEmpName方法，就永远都是false
     Boolean aBoolean =false;
 
+    //修改员工
+    //这里要注意，ajax请求可以直接发送put请求，但是tomcat不会给你封装。spring MVC则提供一个处理这个问题的过滤器，开启即可
+    //解决办法2：就是ajax发送POST请求，在传递过来的数据中发送带上_method=put也行
+    @RequestMapping(value = "/emp/{empId}",method = RequestMethod.PUT)
+    @ResponseBody
+    public Msg updateEmp(Employee employee){
+        Integer integer = employeeService.updateEmp(employee);
+        if (integer>0){
+            return Msg.success();
+        }
+
+        return Msg.fail();
+
+    }
+
+
+    //查询单个员工
+    @RequestMapping(value = "/emp/{id}",method = RequestMethod.GET)
+    @ResponseBody
+    public Msg getEmpSingle(@PathVariable("id") Integer id){
+        Employee empSingle = employeeService.getEmpSingle(id);
+        return Msg.success().add("empSingle", empSingle);
+
+    }
+
+
+
     @RequestMapping(value = "/checkEmpName",method = RequestMethod.POST)
     @ResponseBody
-    public Msg checkEmpName(@RequestParam("empName") String empName){
+    public Msg checkEmpName(@RequestParam("empName") String empName){//用户名重复校验
         aBoolean = employeeService.checkEmp(empName);
         if (aBoolean){//主要是里面的状态码，在前台进行一个判断
             return Msg.success();

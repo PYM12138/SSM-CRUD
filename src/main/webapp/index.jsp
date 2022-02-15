@@ -89,6 +89,61 @@
     </div>
 </div>
 
+<!-- 员工更新模态框 -->
+<div class="modal fade" id="emp_update_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" >编辑员工</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" id="modal_form_update">
+                    <div class="form-group">
+                        <label for="input_EmpName" class="col-sm-2 control-label">empName</label>
+                        <div class="col-sm-10" >
+                            <p class="form-control-static" id="p_empName"></p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input_email" class="col-sm-2 control-label">Email</label>
+                        <div class="col-sm-10" >
+                            <input type="text" class="form-control" name="email" id="input_email_update"
+                                   placeholder="xx@atguigu.com">
+                            <span class="help-block"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">gender</label>
+                        <div class="col-sm-10">
+                            <div class="checkbox">
+                                <label class="radio-inline">
+                                    <input type="radio" name="gender" id="input_update_gender_btn1" value="M" checked="checked"> 男
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="gender" id="input_update_gender_btn2" value="F"> 女
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_add_select" class="col-sm-2 control-label">deptName</label>
+                        <div class="col-sm-4">
+                            <select class="form-control" name="dId" id="modal_update_select">
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="modal_save_update_btn">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container ">
     <%--标题行--%>
     <div class="row">
@@ -147,8 +202,8 @@
 
 
 <script type="text/javascript">
-    //最大页码标记
-    var pageRecord;
+    //最大页码标记,以及当前页标记
+    var pageRecord,currentPage;
 
     //1.在页面加载完成之后，发送ajax请求，拿到分页数据（这样就不需要通过转发的形式拿数据了）
     $(function () {
@@ -181,13 +236,18 @@
             var genderTd = $("<td></td>").append(item.gender === "M" ? "男" : "女");
             var emailTd = $("<td></td>").append(item.email);
             var deptNameTd = $("<td></td>").append(item.dept.deptName);
-            var editBtn = $("<button></button>").addClass("btn btn-info btn-sm")
+            var editBtn = $("<button></button>").addClass("btn btn-info btn-sm edit_btn")
                 .append($("<span></span>").addClass("glyphicon glyphicon-pencil"))
                 .append("编辑");
+            //在编辑回显时候需要拿到当前id，用自定义的属性的方式来获取
+            editBtn.attr("edit-id",item.empId);
+
             var delBtn = $("<button></button>").addClass("btn btn-danger btn-sm")
                 .append($("<span></span>").addClass("glyphicon glyphicon-trash"))
                 .append("删除");
             var btnId = $("<td></td>").append(editBtn).append(" ").append(delBtn);
+
+
 
             //每次append都会返回一个原对象所以可以一直append
             $("<tr></tr>").append(empIdTd)
@@ -210,6 +270,7 @@
         page_info.append($("<h4></h4>")
             .append("当前第" + page.pageNum + "页,总页数" + page.pages + "页,总记录" + page.total + "条"))
         pageRecord=page.total;
+        currentPage=page.pageNum;
     }
 
 
@@ -304,18 +365,20 @@
         reset_form("#modal_form");
 
         //打开模态框之前先查询部门数据
-        departments();
+        departments("#modal_add_select");
 
         //打开模态框
         $("#emp_add_modal").modal({
             backdrop: "static"
         });
         //发现每次点击下拉菜单都是会叠加，所以得让它每次重新打开都要先清空之前的数据
-        $("#modal_add_select").empty();
+        // $("#modal_add_select").empty();
     })
 
     //获取部门信息然后填充到select标签中
-    function departments() {
+    function departments(ele) {
+        //发现每次点击下拉菜单都是会叠加，所以得让它每次重新打开都要先清空之前的数据
+        $(ele).empty();
         $.ajax({
             url: "${APP_PATH}/depts",
             type: "GET",
@@ -323,12 +386,13 @@
                 //{"code":100,"msg":"操作成功","extend":{"depts":[{"deptId":1,"deptName":"开发部"},{"deptId":2,"deptName":"测试部"}]}}
                 $.each(result.extend.depts,function (index, item) {
                     var option=$("<option></option>").append(item.deptName).attr("value",item.deptId);
-                    option.appendTo("#modal_add_select");
+                    option.appendTo(ele);
                 });
             }
         });
 
     }
+
     //模态框保存按钮
     $("#modal_save_btn").click(function (){
         //数据校验（这一步防止直接提交空表单）
@@ -395,6 +459,7 @@
 
        return true;
     }
+
     //数据校验邮箱
     function validate_data_add_form1() {
         var email=$("#input_email").val();
@@ -441,6 +506,7 @@
     $("#input_email").change(function () {
         validate_data_add_form1();
     })
+
     //数据校验信息提取
     function validate_info_warn(ele,status,msg) {
         //数据校验前先清空class，防止样式堆叠
@@ -458,8 +524,79 @@
 
     }
 
+    //给保存修改按钮绑定点击事件
+    //这次不用id来进行操作了，通过class属性来操作
+    //本来可以直接绑定，但是.edit_btn元素是在页面加载完成之后才加上的所以绑不上
+    //$(".edit_btn").click()
+    //换一个方法
+    $(document).on("click",".edit_btn",function () {
+        //查询部门数据,并填充
+        departments("#modal_update_select");
+        //查询员工数据做回显用
+        getEmp($(this).attr("edit-id"));
+        //传递当前的empID给保存修改按钮
+        $("#modal_save_update_btn").attr("edit-id",$(this).attr("edit-id"))
+
+        //打开模态框
+        $("#emp_update_modal").modal({
+            backdrop: "static"
+        });
+    })
+    function getEmp(id) {
+
+        $.ajax({
+            url:"${APP_PATH}/emp/"+id,
+            type:"GET",
+            success:function (result) {
+                //填充数据到表单中(回显)
+                var empData=result.extend.empSingle;
+                $("#p_empName").text(empData.empName);
+                $("#input_email_update").val(empData.email)
+                $("#emp_update_modal input[name=gender]").val([empData.gender])
+                $("#emp_update_modal select").val([empData.dId])
+            }
+        });
+    }
+
+    $("#modal_save_update_btn").click(function () {
+        //在更新之前校验邮箱
+            var email=$("#input_email_update").val();
+            var regxEmail=/^([a-zA-Z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/
+            if (!regxEmail.test(email)){
+                // alert("邮箱格式不正确！")
+                validate_info_warn("#input_email_update","error","邮箱格式不正确!");
+                return false;
+            }else{
+                validate_info_warn("#input_email_update","success","邮箱格式正确");
+            }
+        //1.当保存修改按钮被点击之后，需要获取：当前ID和被更新的数据
+        //获取ID通过传递的方式从编辑按钮中取值。
+
+        //2.发送Ajax请求
+        $.ajax({
+            url:"${APP_PATH}/emp/"+$(this).attr("edit-id"),
+            type:"PUT",
+            data:$("#modal_form_update").serialize(),
+            success:function () {
+                //1.关闭模态框
+                $("#emp_update_modal").modal("hide")
+                //2.回到当前更改页
+                to_page(currentPage);
 
 
+
+            }
+
+
+        })
+        //执行完模态框关闭之后，就执行移除样式
+        $("#emp_update_modal").on('hidden.bs.modal', function () {
+            //完成操作之后移除样式
+            $("#input_email_update").parent().removeClass("has-success has-error")
+            $(".help-block").text("")
+        })
+
+    })
     
     
 
