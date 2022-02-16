@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,31 @@ public class EmployeeController {
 
     //防止恶意禁用JS，默认为false,只要没有用checkEmpName方法，就永远都是false
     Boolean aBoolean =false;
+
+    //删除单个员工,批量删除二合一
+    @RequestMapping(value = "/emp/{ids}",method = RequestMethod.DELETE)
+    @ResponseBody
+    public Msg deleteEmp(@PathVariable("ids") String ids){
+        //以"-"为批量和单个删除区别
+        if (ids.contains("-")){
+            List<Integer> idsInt=new ArrayList<Integer>();
+            String[] split = ids.split("-");
+            for (String s : split) {
+                idsInt.add(Integer.parseInt(s));
+            }
+            employeeService.deleteEmps(idsInt);
+          return Msg.success();
+        }else{
+            int i = Integer.parseInt(ids);
+            employeeService.deleteEmp(i);
+            return Msg.success();
+
+        }
+
+
+
+    }
+
 
     //修改员工
     //这里要注意，ajax请求可以直接发送put请求，但是tomcat不会给你封装。spring MVC则提供一个处理这个问题的过滤器，开启即可

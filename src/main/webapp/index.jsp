@@ -159,7 +159,7 @@
                 <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                 新增
             </button>
-            <button class="btn btn-danger">
+            <button class="btn btn-danger" id="del_btn">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                 删除
             </button>
@@ -172,6 +172,9 @@
             <table class="table table-hover" id="emps_table">
                 <thead>
                 <tr>
+                    <th>
+                        <input type="checkbox" id="check_all" />
+                    </th>
                     <th>ID</th>
                     <th>empName</th>
                     <th>gender</th>
@@ -231,6 +234,7 @@
         $("#emps_table tbody").empty();
         var emps = result.extend.pageInfo.list;
         $.each(emps, function (index, item) {
+            var checkedTd=$("<td><input type='checkbox' class=check_item /></td>")
             var empIdTd = $("<td></td>").append(item.empId);
             var empNameTd = $("<td></td>").append(item.empName);
             var genderTd = $("<td></td>").append(item.gender === "M" ? "男" : "女");
@@ -242,15 +246,18 @@
             //在编辑回显时候需要拿到当前id，用自定义的属性的方式来获取
             editBtn.attr("edit-id",item.empId);
 
-            var delBtn = $("<button></button>").addClass("btn btn-danger btn-sm")
+            var delBtn = $("<button></button>").addClass("btn btn-danger btn-sm del-btn")
                 .append($("<span></span>").addClass("glyphicon glyphicon-trash"))
                 .append("删除");
+            delBtn.attr("del-id",item.empId);
+
             var btnId = $("<td></td>").append(editBtn).append(" ").append(delBtn);
 
 
 
             //每次append都会返回一个原对象所以可以一直append
-            $("<tr></tr>").append(empIdTd)
+            $("<tr></tr>").append(checkedTd)
+                .append(empIdTd)
                 .append(empNameTd)
                 .append(genderTd)
                 .append(emailTd)
@@ -542,6 +549,7 @@
             backdrop: "static"
         });
     })
+    //获取当个员工信息
     function getEmp(id) {
 
         $.ajax({
@@ -557,7 +565,7 @@
             }
         });
     }
-
+    //点击保存修改按钮
     $("#modal_save_update_btn").click(function () {
         //在更新之前校验邮箱
             var email=$("#input_email_update").val();
@@ -582,12 +590,7 @@
                 $("#emp_update_modal").modal("hide")
                 //2.回到当前更改页
                 to_page(currentPage);
-
-
-
             }
-
-
         })
         //执行完模态框关闭之后，就执行移除样式
         $("#emp_update_modal").on('hidden.bs.modal', function () {
@@ -597,8 +600,67 @@
         })
 
     })
+
+    //删除员工先获取它的员工名
+   $(document).on("click",".del-btn",function () {
+       //获取员工名
+       if (confirm("你确定要删除【 "+$(this).parents("tr").find("td:eq(2)").text()+"】吗？")){
+           $.ajax({
+               url:"${APP_PATH}/emp/"+$(this).attr("del-id"),
+               type:"DELETE",
+               success:function (result){
+                   alert(result.msg);
+                   to_page(currentPage)
+               }
+
+           })
+       }
+
+
+    })
     
-    
+    //全选和全不选
+    $("#check_all").click(function () {
+        //获取原生的dom属性用prop()
+        //自定义的用attr()
+        $(".check_item").prop("checked",$(this).prop("checked"))
+
+    })
+    //单选框被全部选满了之后全选框也会被选中
+    $(document).on("click",".check_item",function () {
+       var check_item= $(".check_item:checked").length===$(".check_item").length;
+        $("#check_all").prop("checked",check_item)
+    })
+
+    //批量删除
+    $("#del_btn").click(function (){
+        var empNames="";
+        var empIds="";
+        //首先获取选中的id以及选中的名字，作为一个提示信息
+        if ($(".check_item:checked").parents("tr").find("td:eq(2)").text()!==""){
+            $.each($(".check_item:checked"),function () {
+                empNames+=$(this).parents("tr").find("td:eq(2)").text()+",";
+                empIds+=$(this).parents("tr").find("td:eq(1)").text()+"-";
+
+            })
+            empNames=empNames.substring(0,empNames.length-1);
+            empIds=empIds.substring(0,empIds.length-1);
+            if (confirm("你确定要删除【"+empNames+"】吗？")){
+                $.ajax({
+                    url:"${APP_PATH}/emp/"+empIds,
+                    type:"DELETE",
+                    success:function (result) {
+                        alert(result.msg)
+                        to_page(currentPage)
+                        $("#check_all").prop("checked",false)
+                    }
+                })
+            }
+        }
+
+    })
+
+
 
 </script>
 
